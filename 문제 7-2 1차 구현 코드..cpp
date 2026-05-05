@@ -1,4 +1,4 @@
-﻿#include <iostream>
+﻿﻿#include <iostream>
 #include <map>
 #include <array>
 #include <numbers>
@@ -11,11 +11,14 @@ public:
 
 	//멤버 변수 초기화 함수.(자식 클래스에서 사용)
 	void set_health(int h) {
-		health = h;}
+		health = h;
+	}
 	void set_power(int p) {
-		power = p;}
+		power = p;
+	}
 	void set_speed(int s) {
-		speed = s;}
+		speed = s;
+	}
 
 	//멤버 변수 반환 함수. (확인용)
 	int get_health() {
@@ -37,13 +40,21 @@ private:
 //포수 기본 클래스.
 class catcher : public player {
 public:
-	catcher() {};
+	catcher() : ball_own(0) {};
+	
+	int get_own_ball() {
+		return ball_own;
+	}
 
 	void ball_catch();
+	friend class pitcher;
+private:
+	int ball_own;
 };
 
 void catcher::ball_catch() {
 	std::cout << "공을 잡습니다." << std::endl;
+	ball_own = 1;
 }
 
 //투수 기본 클래스.
@@ -58,17 +69,25 @@ public:
 		return ball_speed;
 	}
 
-	void ball_throw(catcher& our_catcher);
+	int get_ball_count() {
+		return ball_count;
+	}
+
+	virtual void ball_throw(catcher& our_catcher);
 
 private:
 	int ball_speed;
+	static int ball_count;
+
 };
 
+int pitcher::ball_count = 0;
+
 void pitcher::ball_throw(catcher& our_catcher) {
-	std::cout << "공을 던집니다." << std::endl;
+	std::cout << "직구를 던집니다." << std::endl;
+	our_catcher.ball_own = 0;
+	ball_count++;
 }
-
-
 
 //타자 기본 클래스.
 class batter : public player {
@@ -94,6 +113,46 @@ void coach::coaching() {
 	std::cout << "지시를 내립니다." << std::endl;
 }
 
+
+
+//다양한 투수 구현 (다형성)
+class starting_pitcher : public pitcher {
+public:
+	starting_pitcher(int b_s) : pitcher(b_s) {};
+	virtual void ball_throw(catcher& our_catcher) override;
+
+
+};
+
+void starting_pitcher::ball_throw(catcher& our_catcher) {
+	std::cout << "너클볼을 던집니다." << std::endl;
+}
+
+class relief_pitcher : public pitcher {
+public:
+	relief_pitcher(int b_s) : pitcher(b_s) {};
+	virtual void ball_throw(catcher& our_catcher) override;
+
+
+};
+
+void relief_pitcher::ball_throw(catcher& our_catcher) {
+	std::cout << "슬라이더를 던집니다." << std::endl;
+}
+
+
+class closer : public pitcher {
+public:
+	closer(int b_s) : pitcher(b_s) {};
+	virtual void ball_throw(catcher& our_catcher) override;
+
+
+};
+
+void closer::ball_throw(catcher& our_catcher) {
+	std::cout << "포크볼을 던집니다." << std::endl;
+}
+
 int main() {
 	coach our_coach;
 
@@ -101,7 +160,9 @@ int main() {
 	batter our_batter;
 	catcher our_catcher;
 
+	
 	//멤버 기능 확인
+	std::cout << "아" << our_catcher.get_own_ball() << std::endl;
 	std::cout << "우리팀 감독이" << " ";
 	our_coach.coaching();
 	std::cout << std::endl;
@@ -119,4 +180,7 @@ int main() {
 	std::cout << "우리팀 타자가" << " ";
 	our_batter.ball_hit();
 	std::cout << std::endl;
+
+	
+	
 }
